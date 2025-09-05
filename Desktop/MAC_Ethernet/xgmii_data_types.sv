@@ -1,0 +1,8 @@
+
+`ifndef XGMII_AGENT_TYPES_SV
+  `define XGMII_AGENT_TYPES_SV
+
+	`define POLYNOMIAL 32'h04C11DB7
+	
+
+`endif	
