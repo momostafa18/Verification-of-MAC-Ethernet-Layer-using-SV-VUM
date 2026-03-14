@@ -22,11 +22,12 @@
        
       #(100ns);
 		fork
+		repeat(5) begin
          begin
           xgmii_sequence_idle seq = xgmii_sequence_idle::type_id::create("seq");
           
           seq.start(env.agent_2.sequencer);
-		end
+			end
 		
 		/*begin
           repeat(55) begin
@@ -52,7 +53,8 @@
           
 		  void'(seq.randomize());
           seq.start(env.agent_2.sequencer);
-		end		
+		end	
+end		
 
       join
 	  

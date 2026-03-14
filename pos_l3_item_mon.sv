@@ -22,6 +22,10 @@
 	logic        status_rxdfifo_udflow_tog;
 	logic	     txdfifo_wfull; 
 	logic 		 txdfifo_walmost_full;
+	
+	logic [3:0]  crc_rx_state ;
+	logic [31:0] crc_rx_value ;
+	logic [31:0] crc_calc_value ;
 
 	`uvm_object_utils(pos_l3_item_mon)
     

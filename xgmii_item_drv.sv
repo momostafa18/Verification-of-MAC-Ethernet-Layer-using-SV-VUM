@@ -2,10 +2,7 @@
   `define XGMII_ITEM_DRIVING_SV
 
   class xgmii_item_drv extends xgmii_item_base;
-
 	
-	rand bit [63:0] xgmii_rxd ;           
-    rand bit [7:0]  xgmii_rxc ; 
 	rand bit [47:0] DA;
 	rand bit [47:0] SA;
 	rand bit [15:0] type_len;

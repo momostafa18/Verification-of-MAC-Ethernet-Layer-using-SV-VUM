@@ -11,6 +11,10 @@ class pos_l3_monitor extends uvm_monitor implements pos_l3_reset_handler;
 	process process_collect_transactions;
 	
 	pos_l3_item_mon item ;
+	
+	Packet packet;
+	
+	uvm_analysis_port #(pos_l3_item_mon) m_write_port;
        
 	`uvm_component_utils(pos_l3_monitor)
   
@@ -25,10 +29,9 @@ class pos_l3_monitor extends uvm_monitor implements pos_l3_reset_handler;
 			`uvm_fatal("NO_VIF", "Failed to get POS_L3 Virtual Interface from Agent ")
 		end
 		
+		packet = Packet::type_id::create("packet");
 		
-		item   = pos_l3_item_mon::type_id::create("item");
-    
-
+		m_write_port = new("m_write_port", this);
   endfunction
   
   virtual task run_phase(uvm_phase phase);
@@ -47,48 +50,58 @@ class pos_l3_monitor extends uvm_monitor implements pos_l3_reset_handler;
     endtask
 
     protected virtual task collect_transaction();
+		bit done = 0;
+		
+		item   = pos_l3_item_mon::type_id::create("item");
+		
+		@(posedge pos_l3_vif.clk_156m25);
+		
+		fork 
+		begin
+		item.pkt_rx_val  = pos_l3_vif.pkt_rx_val;
+			  item.pkt_rx_sop  = pos_l3_vif.pkt_rx_sop;
+			  item.pkt_rx_data = pos_l3_vif.pkt_rx_data;
+			  item.pkt_rx_eop  = pos_l3_vif.pkt_rx_eop;
+		  if (pos_l3_vif.pkt_rx_avail) begin
+			pos_l3_vif.pkt_rx_ren <= 1'b1;
+			item.pkt_rx_ren       = pos_l3_vif.pkt_rx_ren;
+		  end
 
-      int done = 0;
+		  // Collect until end of packet
+		  while (!done) begin
+			@(posedge pos_l3_vif.clk_156m25);
+			if (pos_l3_vif.pkt_rx_val) begin
+			  // Capture control signals
+			  item.pkt_rx_val  = pos_l3_vif.pkt_rx_val;
+			  item.pkt_rx_sop  = pos_l3_vif.pkt_rx_sop;
+			  item.pkt_rx_data = pos_l3_vif.pkt_rx_data;
+			  item.pkt_rx_eop  = pos_l3_vif.pkt_rx_eop;
 
-      item.pkt_rx_ren					= 1'b1;
-	  item.pkt_rx_val  					= pos_l3_vif.pkt_rx_val ;
-	  item.pkt_rx_sop  					= pos_l3_vif.pkt_rx_sop ;
-	  item.pkt_rx_data 					= pos_l3_vif.pkt_rx_data ;
-	  item.pkt_rx_eop  					= pos_l3_vif.pkt_rx_eop ;
-	  item.pkt_tx_full 					= pos_l3_vif.pkt_tx_full ;	 
-	  item.txdfifo_wfull 		        = pos_l3_vif.txdfifo_wfull;
-	  item.txdfifo_walmost_full 		= pos_l3_vif.txdfifo_walmost_full;
-	  
-	  
-      @(posedge pos_l3_vif.clk_156m25);
+			  if (pos_l3_vif.pkt_rx_eop) begin
+				done = 1;
 
-      while (!done) begin
+				// Deassert read enable after last word
+				pos_l3_vif.pkt_rx_ren <= 1'b0;
+				item.pkt_rx_ren       = pos_l3_vif.pkt_rx_ren;
+			  end
+			end
+			end
+			end
 
-            if (item.pkt_rx_val) begin
-
-                if (item.pkt_rx_sop) begin
-                    $display("\n\n------------------------");
-                end
-
-                $display("%x", item.pkt_rx_data);
-
-                if (item.pkt_rx_eop) begin
-                    
-                    item.pkt_rx_ren <= 1'b0;
-					
-					@(posedge pos_l3_vif.clk_156m25);
-					done = 1;
-                end
-
-                if (item.pkt_rx_eop) begin
-                    $display("------------------------\n\n");
-                end
-
-            end
-
-            @(posedge pos_l3_vif.clk_156m25);
-
-        end
+		begin
+		if (pos_l3_vif.pkt_tx_val) begin
+			item.pkt_tx_val    	 = pos_l3_vif.pkt_tx_val ;
+			item.pkt_tx_data   	 = pos_l3_vif.pkt_tx_data ;
+			item.pkt_tx_sop    	 = pos_l3_vif.pkt_tx_sop ;
+			item.pkt_tx_eop    	 = pos_l3_vif.pkt_tx_eop ;				
+			end
+			item.crc_rx_state    = pos_l3_vif.crc_rx_state ;				
+			item.crc_rx_value    = pos_l3_vif.crc_rx_value ;				
+		end
+		
+		
+		join_any
+		 m_write_port.write(item);
     endtask
 
   protected virtual task collect_transactions();
@@ -106,6 +119,7 @@ class pos_l3_monitor extends uvm_monitor implements pos_l3_reset_handler;
 	
 	protected virtual task wait_reset_end();
       agent_config.wait_reset_end();
+	 
     endtask
 	
 	   
@@ -116,6 +130,8 @@ class pos_l3_monitor extends uvm_monitor implements pos_l3_reset_handler;
 
               process_collect_transactions = null;
       end
+	  
+	   pos_l3_vif.pkt_rx_ren = 1'b0;
     endfunction
  
 endclass

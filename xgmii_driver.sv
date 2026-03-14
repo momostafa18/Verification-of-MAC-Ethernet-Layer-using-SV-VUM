@@ -48,6 +48,7 @@ class xgmii_driver extends uvm_driver#(xgmii_item_drv) implements xgmii_reset_ha
 
 	xgmii_vif.xgmii_rxc <= item.xgmii_rxc ;
 	xgmii_vif.xgmii_rxd <= item.xgmii_rxd ;
+
     endtask
 
   protected virtual task drive_transactions();

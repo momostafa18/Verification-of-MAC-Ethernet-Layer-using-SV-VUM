@@ -11,6 +11,8 @@ class wishbone_monitor extends uvm_monitor implements wishbone_reset_handler;
 	process process_collect_transactions;
 	
 	wishbone_item_mon item ;
+	
+	uvm_analysis_port#(wishbone_item_mon) output_port;
        
 	`uvm_component_utils(wishbone_monitor)
   
@@ -24,9 +26,9 @@ class wishbone_monitor extends uvm_monitor implements wishbone_reset_handler;
     if (!uvm_config_db#(virtual wishbone_intf)::get(this, "", "vif", wb_vif)) begin
       `uvm_fatal("NO_VIF", "Failed to get wishbone Virtual Interface from Agent ")
       end
-		
-		
-	item   = wishbone_item_mon::type_id::create("item");
+	  
+	  output_port = new("output_port", this);
+
   endfunction
   
   virtual task run_phase(uvm_phase phase);
@@ -45,10 +47,27 @@ class wishbone_monitor extends uvm_monitor implements wishbone_reset_handler;
     endtask
 
     protected virtual task collect_transaction();
+	
+	item   = wishbone_item_mon::type_id::create("item");
 
 	 @(posedge wb_vif.wb_clk_i);
 
-      
+      if (wb_vif.wb_cyc_i && wb_vif.wb_stb_i) begin
+        
+        item.wb_adr_o = wb_vif.wb_adr_i;
+        item.wb_we_o  = wb_vif.wb_we_i;
+		
+        // wait for ack
+        while (!wb_vif.wb_ack_o) @(posedge wb_vif.wb_clk_i);
+			if(item.wb_we_o == 0) item.wb_dat_o = wb_vif.wb_dat_o;
+			else item.wb_dat_o = wb_vif.wb_dat_i;
+		
+      output_port.write(item);
+	  
+	  @(posedge wb_vif.wb_clk_i);
+	  
+	  `uvm_info("DEBUG", $sformatf("Monitoring \"%0s\": %0s", item.get_full_name(), item.convert2string()), UVM_NONE)
+	  end
     endtask
 
   protected virtual task collect_transactions();

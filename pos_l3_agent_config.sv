@@ -5,6 +5,10 @@ class pos_l3_agent_config extends uvm_component;
 
 	int unsigned tx_length ;
 	
+	rand int unsigned inter_packet_gap;
+	
+	constraint c_ifg_range { inter_packet_gap inside {[0:50]}; }
+	
 	virtual pos_l3_if pos_l3_vif; 
 
 	uvm_active_passive_enum active_passive;
@@ -14,8 +18,10 @@ class pos_l3_agent_config extends uvm_component;
     function new(string name = "", uvm_component parent);
       super.new(name, parent);
 
-	    active_passive = UVM_ACTIVE;
-		tx_length 	   = 64 ;
+	    active_passive   = UVM_ACTIVE;
+		tx_length 	     = 64 ;
+		inter_packet_gap = 15 ;
+		
     endfunction
 	
 	virtual function void build_phase(uvm_phase phase);
@@ -26,6 +32,16 @@ class pos_l3_agent_config extends uvm_component;
       end
 
 	endfunction
+	
+	virtual function int unsigned get_inter_packet_gap();
+      return inter_packet_gap;
+    endfunction
+    
+    virtual function void set_inter_packet_gap();
+
+      inter_packet_gap = get_inter_packet_gap;
+
+    endfunction
 	
 	virtual function int unsigned get_tx_length();
       return tx_length;

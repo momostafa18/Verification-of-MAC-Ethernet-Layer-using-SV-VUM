@@ -36,6 +36,10 @@ interface pos_l3_if;
 	bit        txdfifo_ren;
 	bit 	   txdfifo_rempty;
 	
+	
+	bit [3:0]  crc_rx_state ;
+	bit [31:0] crc_rx_value ;
+	
   //clock generation
   initial begin
     clk_156m25 = 0 ;

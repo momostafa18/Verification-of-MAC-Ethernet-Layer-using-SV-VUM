@@ -3,6 +3,10 @@
 
   class xgmii_item_base extends uvm_sequence_item;
 
+	rand bit [63:0] xgmii_rxd ;           
+    rand bit [7:0]  xgmii_rxc ; 
+	bit      [31:0] crc_calc;
+	
 	`uvm_object_utils(xgmii_item_base)
     
     function new(string name = "");

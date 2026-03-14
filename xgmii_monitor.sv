@@ -1,4 +1,3 @@
-
 `ifndef XGMII_MONITOR_SV
   `define XGMII_MONITOR_SV
 
@@ -11,6 +10,8 @@ class xgmii_monitor extends uvm_monitor implements xgmii_reset_handler;
 	process process_collect_transactions;
 	
 	xgmii_item_mon item ;
+	
+	uvm_analysis_port #(xgmii_item_mon) m_write_port;
        
 	`uvm_component_utils(xgmii_monitor)
   
@@ -24,9 +25,9 @@ class xgmii_monitor extends uvm_monitor implements xgmii_reset_handler;
     if (!uvm_config_db#(virtual xgmii_if)::get(this, "", "vif", xgmii_vif)) begin
       `uvm_fatal("NO_VIF", "Failed to get XGMII Virtual Interface from Agent ")
       end
-		
-		
-	item   = xgmii_item_mon::type_id::create("item");
+	
+	m_write_port = new("m_write_port", this);	
+	
   endfunction
   
   virtual task run_phase(uvm_phase phase);
@@ -45,9 +46,30 @@ class xgmii_monitor extends uvm_monitor implements xgmii_reset_handler;
     endtask
 
     protected virtual task collect_transaction();
-
+	
+	item   = xgmii_item_mon::type_id::create("item");
 	 @(posedge xgmii_vif.clk_xgmii_rx);
-      
+	 
+	 fork 
+	 begin
+		 item.xgmii_rxc 		= xgmii_vif.xgmii_rxc ;
+		 item.xgmii_rxd 		= xgmii_vif.xgmii_rxd ;
+		 item.crc_state 		= xgmii_vif.crc_state ;
+		 item.crc_calculated    = xgmii_vif.crc_calculated ;
+		 item.crc_rx_state      = xgmii_vif.crc_rx_state ;
+		 item.crc_rx_value      = xgmii_vif.crc_rx_value ;
+		 
+	 end
+	 
+	 begin
+		 item.xgmii_txc = xgmii_vif.xgmii_txc ;
+		 item.xgmii_txd = xgmii_vif.xgmii_txd ;
+	 //$display("this is xgmii monitor and this is the value of txc = %0h", item.xgmii_txc);
+	 //$display("this is xgmii monitor and this is the value of txd = %0h", item.xgmii_txd);
+	 end
+	 
+	 join_any
+	  m_write_port.write(item);
     endtask
 
   protected virtual task collect_transactions();

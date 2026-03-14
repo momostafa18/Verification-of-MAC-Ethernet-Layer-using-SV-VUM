@@ -46,13 +46,12 @@ class pos_l3_driver extends uvm_driver#(pos_l3_item_drv) implements pos_l3_reset
 
     virtual task drive_transaction(pos_l3_item_drv item);
 	  
-	  `uvm_info("ITEM_START", $sformatf("Driving: Data= 0x%0h ",packet), UVM_LOW)
+	  `uvm_info("DEBUG", $sformatf("Driving \"%0s\": %0s", packet.get_full_name(), packet.convert2string()), UVM_NONE)
 		
         @(posedge pos_l3_vif.clk_156m25);
-		#1ns ;
+		#1ns;
+		
         pos_l3_vif.pkt_tx_val 	  	  <= item.pkt_tx_val;
-	    pos_l3_vif.txdfifo_ren 	  	  <= item.txdfifo_ren;
-		pos_l3_vif.txdfifo_rempty 	  <= item.txdfifo_rempty;
         for (int i = 0; i < agent_config.get_tx_length(); i = i + 8) begin
 
             pos_l3_vif.pkt_tx_sop 		<= 1'b0;
@@ -63,14 +62,16 @@ class pos_l3_driver extends uvm_driver#(pos_l3_item_drv) implements pos_l3_reset
             if (i == 0) begin 
 			pos_l3_vif.pkt_tx_sop <= 1'b1;
 			
-			pos_l3_vif.pkt_tx_data[`LANE0] <= packet.sop[`LANE0];
-            pos_l3_vif.pkt_tx_data[`LANE1] <= packet.sop[`LANE1];
-            pos_l3_vif.pkt_tx_data[`LANE2] <= packet.sop[`LANE2];
-            pos_l3_vif.pkt_tx_data[`LANE3] <= packet.sop[`LANE3];
-            pos_l3_vif.pkt_tx_data[`LANE4] <= packet.sop[`LANE4];
-            pos_l3_vif.pkt_tx_data[`LANE5] <= packet.sop[`LANE5];
-			pos_l3_vif.pkt_tx_data[`LANE6] <= packet.sop[`LANE6];
-			pos_l3_vif.pkt_tx_data[`LANE7] <= packet.sop[`LANE7];
+			pos_l3_vif.pkt_tx_data[`LANE0] <= packet.idle[`LANE0];
+            pos_l3_vif.pkt_tx_data[`LANE1] <= packet.idle[`LANE1];
+            pos_l3_vif.pkt_tx_data[`LANE2] <= packet.idle[`LANE2];
+            pos_l3_vif.pkt_tx_data[`LANE3] <= packet.idle[`LANE3];
+            pos_l3_vif.pkt_tx_data[`LANE4] <= packet.idle[`LANE4];
+            pos_l3_vif.pkt_tx_data[`LANE5] <= packet.idle[`LANE5];
+			pos_l3_vif.pkt_tx_data[`LANE6] <= packet.idle[`LANE6];
+			pos_l3_vif.pkt_tx_data[`LANE7] <= packet.idle[`LANE7];
+			
+			
 			
 			end
 			
@@ -89,6 +90,8 @@ class pos_l3_driver extends uvm_driver#(pos_l3_item_drv) implements pos_l3_reset
             end
 			
 			else begin 
+
+			
 			void'(packet.randomize());
             pos_l3_vif.pkt_tx_data[`LANE0] <= packet.pkt_data[`LANE0];
             pos_l3_vif.pkt_tx_data[`LANE1] <= packet.pkt_data[`LANE1];
@@ -102,15 +105,22 @@ class pos_l3_driver extends uvm_driver#(pos_l3_item_drv) implements pos_l3_reset
 			end
 
             @(posedge pos_l3_vif.clk_156m25);
-			#1ns ;
+			#1ns;
         end
 	  pos_l3_vif.pkt_tx_val 		    <= 1'b0;
       pos_l3_vif.pkt_tx_eop 		    <= 1'b0;
-      pos_l3_vif.pkt_tx_mod 		    <= 3'b0;
-      
-	  
-	  
-        
+	  pos_l3_vif.pkt_tx_mod 			<= 3'b0;
+
+	  repeat (agent_config.inter_packet_gap) begin
+      @(posedge pos_l3_vif.clk_156m25);
+      #1ns;
+      pos_l3_vif.pkt_tx_val  <= 1'b0;
+      pos_l3_vif.pkt_tx_sop  <= 1'b0;
+      pos_l3_vif.pkt_tx_eop  <= 1'b0;
+      pos_l3_vif.pkt_tx_mod  <= '0;
+      pos_l3_vif.pkt_tx_data <= '0;   // idle data
+      pos_l3_vif.txdfifo_ren <= '0;   // typical idle
+    end
 
     endtask
 
@@ -148,11 +158,11 @@ class pos_l3_driver extends uvm_driver#(pos_l3_item_drv) implements pos_l3_reset
     
     //Initialize the signals
       pos_l3_vif.pkt_tx_val 			<= 1'b0;
+	  pos_l3_vif.pkt_tx_sop 			<= 1'b0;
       pos_l3_vif.pkt_tx_eop 			<= 1'b0;
       pos_l3_vif.pkt_tx_mod 			<= 3'b0;
       pos_l3_vif.pkt_tx_data 			<= 64'b0;
 	  pos_l3_vif.txdfifo_ren 			<= 'b0;
-	  pos_l3_vif.txdfifo_rempty 	    <= 'b0;
     endfunction
 
   endclass

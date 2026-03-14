@@ -8,7 +8,7 @@
   package wishbone_agent_pkg;
 	 import uvm_pkg::*;
 	  
-	  `include "wishbone_reset_handler.sv"
+	  `include "wishbone_reset_handler.sv"	  
 	  `include "wishbone_agent_config.sv"
 	  `include "wishbone_item_base.sv"
       `include "wishbone_item_drv.sv"
@@ -20,6 +20,7 @@
 	  `include "wishbone_sequence_base.sv"
 	  `include "wishbone_sequence_simple.sv"
 	  `include "wishbone_sequence_random.sv"
+	  `include "wb_reg_adapter.sv"
 	  `include "wishbone_agent.sv"
 	  
 

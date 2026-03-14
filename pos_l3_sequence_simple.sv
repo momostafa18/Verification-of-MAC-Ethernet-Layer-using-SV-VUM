@@ -19,8 +19,6 @@
   task body;
      start_item(item);
 	 item.pkt_tx_val 	 = pkt_tx_val ;
-	 /*item.txdfifo_rempty = 1 ;*/
-	 item.txdfifo_ren    = 1 ;
 	 finish_item(item);
 
   endtask

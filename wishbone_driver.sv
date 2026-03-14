@@ -22,10 +22,11 @@ class wishbone_driver extends uvm_driver#(wishbone_item_drv) implements wishbone
 		if (!uvm_config_db#(virtual wishbone_intf)::get(this, "", "vif", wb_vif)) begin
 			`uvm_fatal("NO_VIF", "Failed to get wishbone Virtual Interface from Agent ")
 		end
-
-	    item   = wishbone_item_drv::type_id::create("item");
-
+		
+		item   = wishbone_item_drv::type_id::create("item");
   endfunction
+  
+  
   
   virtual task run_phase(uvm_phase phase);
       forever begin
@@ -42,8 +43,12 @@ class wishbone_driver extends uvm_driver#(wishbone_item_drv) implements wishbone
     endtask
 
     virtual task drive_transaction(wishbone_item_drv item);
-
-@(posedge wb_vif.wb_clk_i);
+	
+	`uvm_info("DEBUG", $sformatf("Driving \"%0s\": %0s", item.get_full_name(), item.convert2string()), UVM_NONE)
+	
+	
+	
+	@(posedge wb_vif.wb_clk_i);
 
         wb_vif.wb_cyc_i <= 1;
 		wb_vif.wb_stb_i <= 1;
@@ -102,8 +107,8 @@ class wishbone_driver extends uvm_driver#(wishbone_item_drv) implements wishbone
     end
     
     //Initialize the signals
-        wb_vif.wb_cyc_i <= 1;
-		wb_vif.wb_stb_i <= 1;
+        wb_vif.wb_cyc_i <= 0;
+		wb_vif.wb_stb_i <= 0;
 		wb_vif.wb_we_i  <= 0;
 		wb_vif.wb_adr_i <= 'b0;
 		wb_vif.wb_dat_i <= 'b0;

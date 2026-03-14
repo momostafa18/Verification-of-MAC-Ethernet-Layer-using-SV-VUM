@@ -11,6 +11,8 @@ class wishbone_agent extends uvm_agent implements wishbone_reset_handler;
 	 wishbone_monitor   monitor ;
 	 
 	`uvm_component_utils(wishbone_agent)
+	
+	//uvm_analysis_port #(wishbone_item_mon) write_port;
     
     function new(string name = "", uvm_component parent);
       super.new(name, parent);
@@ -47,6 +49,8 @@ class wishbone_agent extends uvm_agent implements wishbone_reset_handler;
       
         driver.seq_item_port.connect(sequencer.seq_item_export);
       end
+	  
+	  //monitor.output_port.connect(write_port);
      
     endfunction
 

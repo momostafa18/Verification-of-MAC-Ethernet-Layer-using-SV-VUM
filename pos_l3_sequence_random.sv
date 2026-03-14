@@ -8,7 +8,7 @@
 	
 	bit pkt_tx_vall ;
            
-    rand int unsigned item_num = 2; 
+    rand int unsigned item_num ; 
     constraint num_of_items {item_num <= 10; }
     
     `uvm_object_utils(pos_l3_sequence_random)

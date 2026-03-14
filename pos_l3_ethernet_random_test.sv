@@ -11,14 +11,22 @@
     function new(string name = "", uvm_component parent);
       super.new(name, parent);
       
-      tx_length = 64;    // TODO : Make the Agent Configuration configurable by the test to change the tx_length of the packet
+      tx_length = 64;    
     endfunction
      
     virtual task run_phase(uvm_phase phase); 
+	
+	virtual_seq  m_vseq = virtual_seq::type_id::create ("m_vseq");
+		phase.raise_objection (this);
+		m_vseq.start (env.v_seqr);
+		#150ns;
+		phase.drop_objection (this);
+		
+		
 
-      phase.raise_objection(this, "TEST_DONE");
+      //phase.raise_objection(this, "TEST_DONE");
        
-      #(100ns);
+      /*#(100ns);
 	  
 	  // OVERFLOW SEQUENCE
 	  fork
@@ -27,7 +35,7 @@
           seq.start(env.agent_1.sequencer);
 		 end
 
-		begin
+		/*begin
           repeat(3) begin
             @(posedge pos_l3_vif.pkt_tx_sop);
           end
@@ -41,7 +49,7 @@
         end
 
 		begin
-		repeat (257) begin
+		repeat (4) begin
           pos_l3_sequence_random seq = pos_l3_sequence_random::type_id::create("seq");
           
 		  void'(seq.randomize());
@@ -50,7 +58,7 @@
 		  end
 		end
 		
-		begin
+		/*begin
 		repeat (30) begin
           pos_l3_sequence_underflow_tx seq = pos_l3_sequence_underflow_tx::type_id::create("seq");
           seq.start(env.agent_1.sequencer);
@@ -58,8 +66,9 @@
 		end
 
       join
-      #(500ns);
-      phase.drop_objection(this, "TEST_DONE"); 
+      #(500ns);*/
+	  
+      //phase.drop_objection(this, "TEST_DONE"); 
     endtask
     
   endclass

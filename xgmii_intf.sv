@@ -14,6 +14,15 @@ interface xgmii_if;
 
 	logic [63:0] xgmii_rxd ;           
     logic [7:0]  xgmii_rxc ; 	
+	
+	logic        pkt_rx_ren ; 
+	
+	logic [31:0] crc_calculated; 
+	logic [2:0]  crc_state;
+	
+	logic [3:0]  crc_rx_state;
+	logic [31:0] crc_rx_value;
+	
 
    initial begin
     clk_xgmii_tx = 0 ;

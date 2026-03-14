@@ -11,10 +11,12 @@ class pos_l3_agent extends uvm_agent implements pos_l3_reset_handler;
 	 pos_l3_monitor   monitor ;
 	 
 	`uvm_component_utils(pos_l3_agent)
+	
+	uvm_analysis_port #(pos_l3_item_mon) m_write_port;
     
     function new(string name = "", uvm_component parent);
       super.new(name, parent);
-
+		
     endfunction
 
 	virtual function void build_phase(uvm_phase phase);
@@ -38,6 +40,7 @@ class pos_l3_agent extends uvm_agent implements pos_l3_reset_handler;
 	  uvm_config_db #(virtual pos_l3_if)::set(this,"pos_l3_monitor","vif",pos_l3_vif);
 	  monitor.agent_config = agent_config ;
 	  
+	  m_write_port = new("m_write_port", this);
 	endfunction
     
     virtual function void connect_phase(uvm_phase phase);
@@ -47,6 +50,7 @@ class pos_l3_agent extends uvm_agent implements pos_l3_reset_handler;
       
         driver.seq_item_port.connect(sequencer.seq_item_export);
       end
+	  monitor.m_write_port.connect(m_write_port);
      
     endfunction
 

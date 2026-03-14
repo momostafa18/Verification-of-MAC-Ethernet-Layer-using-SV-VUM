@@ -10,12 +10,14 @@ class xgmii_agent extends uvm_agent implements xgmii_reset_handler;
 	 xgmii_driver 	      driver ;
 	 xgmii_sequencer      sequencer;
 	 xgmii_monitor        monitor ;
-	 
+
 	`uvm_component_utils(xgmii_agent)
+	
+	uvm_analysis_port #(xgmii_item_mon) m_write_port;
     
     function new(string name = "", uvm_component parent);
       super.new(name, parent);
-
+		
     endfunction
 
 	virtual function void build_phase(uvm_phase phase);
@@ -23,9 +25,8 @@ class xgmii_agent extends uvm_agent implements xgmii_reset_handler;
       if (!uvm_config_db#(virtual xgmii_if)::get(this, "", "vif", xgmii_vif)) begin
       `uvm_fatal("NO_VIF", "Failed to get POS_L3 Virtual Interface from Test ")
       end
-	  uvm_config_db #(virtual xgmii_if)::set(this,"xgmii_agent_config","vif",xgmii_vif);
-	  
-	  
+	  uvm_config_db #(virtual xgmii_if)::set(this,"xgmii_agent_config","vif",xgmii_vif); 
+	  m_write_port = new("m_write_port", this);
 	  agent_config = xgmii_agent_config::type_id::create("agent_config", this);
 	  
 	  if(agent_config.get_active_passive() == UVM_ACTIVE) begin
@@ -49,6 +50,8 @@ class xgmii_agent extends uvm_agent implements xgmii_reset_handler;
       
         driver.seq_item_port.connect(sequencer.seq_item_export);
       end
+	  
+	  monitor.m_write_port.connect(m_write_port);
      
     endfunction
 
